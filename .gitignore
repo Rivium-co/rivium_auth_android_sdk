@@ -1,0 +1,29 @@
+# Gradle
+.gradle/
+.kotlin/
+build/
+!gradle/wrapper/
+*.aar
+*.apk
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Local properties
+local.properties
+
+# Claude
+.claude/
+
+# macOS
+.DS_Store
+
+# Example build artifacts
+example/.gradle/
+example/.kotlin/
+example/build/
+example/app/build/
+example/local.properties
+example/.idea/
