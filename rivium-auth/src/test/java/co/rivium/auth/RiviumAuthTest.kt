@@ -383,4 +383,27 @@ class RiviumAuthTest {
         assertEquals("abc 123", RiviumAuth.tokenFromLink("myapp://auth?x=1&token=abc%20123#f"))
         assertNull(RiviumAuth.tokenFromLink("myapp://auth"))
     }
+
+    // ------------------------------------------------------------ SDK header
+
+    @Test
+    fun everyRequestSendsSdkHeader() = runBlocking {
+        handler = { path, _, _ -> if (path == "/v1/anonymous") session("acc-1", "ref-1", "u-anon") else MockResponse().setResponseCode(204) }
+        make()
+        auth.signInAnonymously()
+        auth.signOut()
+
+        assertTrue(requests.size >= 2)
+        requests.forEach { (path, req) -> assertEquals(path, "auth-android/0.1.1", req.getHeader("X-Rivium-SDK")) }
+    }
+
+    @Test
+    fun versionMatchesGradleProperties() {
+        val file = listOf(java.io.File("../gradle.properties"), java.io.File("gradle.properties")).first { it.exists() }
+        val props = java.util.Properties().apply { file.inputStream().use { load(it) } }
+        assertEquals(props.getProperty("VERSION_NAME"), SDK_VERSION)
+        val buildFile = java.io.File(file.parentFile, "rivium-auth/build.gradle.kts").readText()
+        assertTrue("build.gradle.kts fallback", buildFile.contains("?: \"$SDK_VERSION\")"))
+        assertEquals("auth-android/$SDK_VERSION", SDK_HEADER)
+    }
 }

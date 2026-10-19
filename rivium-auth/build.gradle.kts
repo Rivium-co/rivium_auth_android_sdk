@@ -53,7 +53,7 @@ mavenPublishing {
     publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
     signAllPublications()
 
-    coordinates("co.rivium", "rivium-auth", project.findProperty("VERSION_NAME") as String? ?: "0.1.0")
+    coordinates("co.rivium", "rivium-auth", project.findProperty("VERSION_NAME") as String? ?: "0.1.1")
 
     pom {
         name.set("RiviumAuth Android SDK")

@@ -15,7 +15,7 @@ import co.rivium.auth.RiviumAuth
 import co.rivium.auth.RiviumAuthException
 import kotlinx.coroutines.launch
 
-// Rivium Auth — Android example (SDK 0.1.0)
+// Rivium Auth — Android example (SDK 0.1.1)
 //
 // Paste your public project key (Rivium Console → your project → API keys) into the field below,
 // or replace the placeholder. Never put a server secret in an app.

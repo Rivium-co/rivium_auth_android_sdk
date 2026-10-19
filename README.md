@@ -25,7 +25,7 @@
 
 ```kotlin
 dependencies {
-    implementation("co.rivium:rivium-auth:0.1.0")
+    implementation("co.rivium:rivium-auth:0.1.1")
 }
 ```
 
@@ -33,7 +33,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'co.rivium:rivium-auth:0.1.0'
+    implementation 'co.rivium:rivium-auth:0.1.1'
 }
 ```
 

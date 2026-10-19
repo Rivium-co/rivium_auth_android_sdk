@@ -32,6 +32,7 @@ internal class HttpClient(
         val request = Request.Builder()
             .url("$baseUrl/$path")
             .header("x-api-key", apiKey)
+            .header("X-Rivium-SDK", SDK_HEADER)
             .header("Accept", "application/json")
             .apply { if (bearer != null) header("Authorization", "Bearer $bearer") }
             .method(method, requestBody ?: if (method == "POST") EMPTY.toRequestBody(JSON) else null)
