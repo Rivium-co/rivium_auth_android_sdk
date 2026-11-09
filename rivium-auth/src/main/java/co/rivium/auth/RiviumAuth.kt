@@ -136,6 +136,16 @@ class RiviumAuth internal constructor() {
     suspend fun getAccessToken(forceRefresh: Boolean = false): String? =
         sessionManager().validAccessToken(forceRefresh)
 
+    /**
+     * The access token with its decoded fields, like Firebase's `getIdToken()` result: [RiviumTokenResult.claims] holds
+     * the custom claims your server set (`setCustomUserClaims`), for example to show a "Pro" badge. Null when signed
+     * out. Pass `forceRefresh = true` right after your server changed the claims, to get them without waiting for the
+     * next refresh (at most an hour). For display only: access is decided on the server.
+     */
+    @JvmOverloads
+    suspend fun getTokenResult(forceRefresh: Boolean = false): RiviumTokenResult? =
+        getAccessToken(forceRefresh)?.let { RiviumTokenResult.fromToken(it) }
+
     /** For Rivium Push: `RiviumPushConfig(..., tokenProvider = RiviumAuth.shared.tokenProvider)`. */
     val tokenProvider: RiviumAuthTokenProvider = { getAccessToken() }
 

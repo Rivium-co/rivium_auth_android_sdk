@@ -394,7 +394,7 @@ class RiviumAuthTest {
         auth.signOut()
 
         assertTrue(requests.size >= 2)
-        requests.forEach { (path, req) -> assertEquals(path, "auth-android/0.1.1", req.getHeader("X-Rivium-SDK")) }
+        requests.forEach { (path, req) -> assertEquals(path, "auth-android/0.2.0", req.getHeader("X-Rivium-SDK")) }
     }
 
     @Test

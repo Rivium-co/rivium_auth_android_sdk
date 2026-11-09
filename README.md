@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://rivium.co">
-    <img src="https://rivium.co/logo.png" alt="Rivium" width="120" />
+    <img src="https://rivium.co/icon.svg" alt="Rivium" width="120" />
   </a>
 </p>
 
@@ -21,11 +21,23 @@
 
 ## Installation
 
+The SDK is published on [Rivium Center](https://center.rivium.co). Add its repository in `settings.gradle.kts` (or `settings.gradle`):
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://center.rivium.co/api/packages/rivium/maven") }
+    }
+}
+```
+
 ### Gradle (Kotlin DSL)
 
 ```kotlin
 dependencies {
-    implementation("co.rivium:rivium-auth:0.1.1")
+    implementation("co.rivium:rivium-auth:0.2.0")
 }
 ```
 
@@ -33,7 +45,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'co.rivium:rivium-auth:0.1.1'
+    implementation 'co.rivium:rivium-auth:0.2.0'
 }
 ```
 
@@ -170,6 +182,21 @@ auth.deleteAccount()
 The refresh token is stored encrypted with a key that never leaves the
 Android Keystore; the access token stays in memory. A session revoked
 elsewhere signs the user out here; a network error does not.
+
+## Custom claims
+
+Your server sets custom claims for a user with the server secret (`setCustomUserClaims`, see
+[Custom claims](https://rivium.co/docs/auth/custom-claims)), for example `{ "plan": "pro" }`. Every token of the
+user carries them, and Rivium Sync rules read them as `auth.token.plan`. In the app, read them to show things
+(a "Pro" badge): access is still decided on the server.
+
+```kotlin
+val result = auth.getTokenResult()
+if (result?.claims?.get("plan") == "pro") showProBadge()
+
+// Right after your server changed the claims ("Check my purchase"):
+auth.getTokenResult(forceRefresh = true)
+```
 
 ## Errors
 
