@@ -384,6 +384,49 @@ class RiviumAuthTest {
         assertNull(RiviumAuth.tokenFromLink("myapp://auth"))
     }
 
+    // ------------------------------------------------------------ E-mail language
+
+    @Test
+    fun languageCodeIsSentAsLocaleHeaderOnlyWhenSet() = runBlocking {
+        handler = { _, _, _ -> MockResponse().setResponseCode(202) }
+        make()
+        auth.sendMagicLink("a@example.com", "https://app.example.com/magic")
+        auth.languageCode = "de"
+        auth.sendMagicLink("a@example.com", "https://app.example.com/magic")
+        auth.languageCode = null
+        auth.sendMagicLink("a@example.com", "https://app.example.com/magic")
+        val sent = calls("/v1/magic-link/send").map { it.getHeader("x-rivium-locale") }
+        assertEquals(listOf(null, "de", null), sent)
+    }
+
+    @Test
+    fun languageCodeSetBeforeConfigureIsKeptAndBadValuesAreIgnored() = runBlocking {
+        handler = { _, _, _ -> MockResponse().setResponseCode(202) }
+        storage = MemorySessionStorage(null)
+        auth = RiviumAuth()
+        auth.languageCode = "de-AT"
+        auth.configure("rv_live_test", server.url("/").toString(), OkHttpClient(), storage)
+        auth.sendMagicLink("a@example.com", "https://app.example.com/magic")
+        assertEquals("de-AT", calls("/v1/magic-link/send").single().getHeader("x-rivium-locale"))
+        for (bad in listOf("", "x", "de\r\nX: y", "x".repeat(40), "12")) {
+            auth.languageCode = bad
+            assertEquals(bad, null, auth.languageCode)
+        }
+    }
+
+    @Test
+    fun useAppLanguageTakesTheDefaultLocale() {
+        val before = java.util.Locale.getDefault()
+        try {
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("de-AT"))
+            make()
+            auth.useAppLanguage()
+            assertEquals("de-AT", auth.languageCode)
+        } finally {
+            java.util.Locale.setDefault(before)
+        }
+    }
+
     // ------------------------------------------------------------ SDK header
 
     @Test
@@ -394,7 +437,7 @@ class RiviumAuthTest {
         auth.signOut()
 
         assertTrue(requests.size >= 2)
-        requests.forEach { (path, req) -> assertEquals(path, "auth-android/0.2.0", req.getHeader("X-Rivium-SDK")) }
+        requests.forEach { (path, req) -> assertEquals(path, "auth-android/0.4.0", req.getHeader("X-Rivium-SDK")) }
     }
 
     @Test

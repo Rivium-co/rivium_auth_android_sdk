@@ -26,11 +26,11 @@ class TokenResultTest {
     @Test
     fun decodesEveryFieldFlatWithCustomClaimsAndNoMeta() {
         val p = standard().put("plan", "pro").put("team", JSONObject().put("id", "t1").put("tags", org.json.JSONArray().put("red")))
-            .put("نقش", "مدیر 👋").put("note", JSONObject.NULL)
+            .put("役割", "管理者 👋").put("note", JSONObject.NULL)
         val r = RiviumTokenResult.fromToken(jwt(p))!!
         assertEquals("pro", r.claims["plan"])
         assertEquals(mapOf("id" to "t1", "tags" to listOf("red")), r.claims["team"])
-        assertEquals("مدیر 👋", r.claims["نقش"])
+        assertEquals("管理者 👋", r.claims["役割"])
         assertNull(r.claims["note"])
         assertEquals("ru_user1", r.claims["sub"])
         assertFalse(r.claims.containsKey("meta"))
@@ -75,16 +75,5 @@ class TokenResultTest {
         } finally {
             server.shutdown()
         }
-    }
-
-    @Test
-    fun nestedCustomClaimsFromTheRiviumServerComeOutByNameAndTokenFieldsWin() {
-        val p = standard().apply { remove("auth_time") }
-            .put("claims", JSONObject().put("levels", org.json.JSONArray().put("A1")).put("sub", "someone-else"))
-        val r = RiviumTokenResult.fromToken(jwt(p))!!
-        assertEquals(listOf("A1"), r.claims["levels"])
-        assertEquals("ru_user1", r.claims["sub"])
-        assertFalse(r.claims.containsKey("claims"))
-        assertEquals(now, r.authTimestamp)
     }
 }

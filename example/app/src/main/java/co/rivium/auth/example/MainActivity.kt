@@ -13,9 +13,11 @@ import androidx.lifecycle.lifecycleScope
 import co.rivium.auth.ListenerRegistration
 import co.rivium.auth.RiviumAuth
 import co.rivium.auth.RiviumAuthException
+import co.rivium.auth.ui.RiviumSignIn
+import co.rivium.auth.ui.RiviumSignInOptions
 import kotlinx.coroutines.launch
 
-// Rivium Auth — Android example (SDK 0.1.1)
+// Rivium Auth — Android example (SDK 0.4.0)
 //
 // Paste your public project key (Rivium Console → your project → API keys) into the field below,
 // or replace the placeholder. Never put a server secret in an app.
@@ -27,8 +29,10 @@ class MainActivity : AppCompatActivity() {
 
     private val auth = RiviumAuth.shared
     private var registration: ListenerRegistration? = null
+    private var configured = false
 
     private lateinit var apiKey: EditText
+    private lateinit var server: EditText
     private lateinit var email: EditText
     private lateinit var password: EditText
     private lateinit var userLabel: TextView
@@ -45,12 +49,18 @@ class MainActivity : AppCompatActivity() {
 
         apiKey = field("Public API key (rv_live_...)", API_KEY_PLACEHOLDER)
         root.addView(apiKey)
+        // Optional: another Auth server, for example one you run yourself. Empty = the default server.
+        server = field("Server URL (optional)", "").apply { inputType = InputType.TYPE_TEXT_VARIATION_URI or InputType.TYPE_CLASS_TEXT }
+        root.addView(server)
         root.addView(button("Configure") { configure() })
 
         userLabel = TextView(this).apply { setPadding(0, dp(12), 0, dp(4)); textSize = 16f }
         root.addView(userLabel)
         status = TextView(this).apply { setPadding(0, 0, 0, dp(12)) }
         root.addView(status)
+
+        // The ready-made sign-in screen: only the methods turned on in the Console.
+        root.addView(button("Open the ready-made sign-in screen") { openSignInScreen() })
 
         root.addView(button("Sign in anonymously") { run { auth.signInAnonymously(); "Signed in anonymously." } })
 
@@ -89,13 +99,24 @@ class MainActivity : AppCompatActivity() {
         if (key.isEmpty() || key == API_KEY_PLACEHOLDER) {
             show("Paste your public API key, then tap Configure.")
             renderUser(null)
+            configured = false
             return
         }
         registration?.remove()
-        auth.configure(applicationContext, key)
+        val url = server.text.toString().trim()
+        if (url.isEmpty()) auth.configure(applicationContext, key) else auth.configure(applicationContext, key, url)
         // Called on sign-in, sign-out and when a session ends; post to the main thread for views.
         registration = auth.addAuthStateListener { userId -> runOnUiThread { renderUser(userId) } }
+        configured = true
         show("Configured.")
+    }
+
+    private fun openSignInScreen() {
+        if (!configured) return show("Paste your public API key, then tap Configure.")
+        val options = RiviumSignInOptions(appName = "Rivium Auth example", allowGuest = true)
+        RiviumSignIn.show(this, auth, options) { result ->
+            show(if (result == null) "Sign-in screen closed." else "Signed in from the sign-in screen: ${result.userId}")
+        }
     }
 
     /** Runs one SDK call and shows its result or its error code. */

@@ -21,23 +21,11 @@
 
 ## Installation
 
-The SDK is published on [Rivium Center](https://center.rivium.co). Add its repository in `settings.gradle.kts` (or `settings.gradle`):
-
-```kotlin
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url = uri("https://center.rivium.co/api/packages/rivium/maven") }
-    }
-}
-```
-
 ### Gradle (Kotlin DSL)
 
 ```kotlin
 dependencies {
-    implementation("co.rivium:rivium-auth:0.2.0")
+    implementation("co.rivium:rivium-auth:0.1.1")
 }
 ```
 
@@ -45,7 +33,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'co.rivium:rivium-auth:0.2.0'
+    implementation 'co.rivium:rivium-auth:0.1.1'
 }
 ```
 

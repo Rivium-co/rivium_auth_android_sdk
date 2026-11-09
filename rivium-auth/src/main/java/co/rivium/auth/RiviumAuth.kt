@@ -53,6 +53,8 @@ class RiviumAuth internal constructor() {
 
         const val DEFAULT_BASE_URL = "https://auth-users.rivium.co"
 
+        private val LANGUAGE_TAG = Regex("^[A-Za-z]{2,8}([-_][A-Za-z0-9]{1,8})*$")
+
         /** The `token` query parameter of a reset, verification or magic link. */
         @JvmStatic
         fun tokenFromLink(link: String): String? {
@@ -66,6 +68,7 @@ class RiviumAuth internal constructor() {
     }
 
     @Volatile private var http: HttpClient? = null
+    @Volatile private var language: String? = null
     @Volatile private var session: SessionManager? = null
     @Volatile private var cachedUser: RiviumUser? = null
     private val listeners = CopyOnWriteArrayList<AuthStateListener>()
@@ -96,10 +99,34 @@ class RiviumAuth internal constructor() {
     internal fun configure(apiKey: String, baseUrl: String, client: OkHttpClient, storage: SessionStorage, clock: () -> Long = System::currentTimeMillis) {
         val http = HttpClient(baseUrl, apiKey, client)
         val manager = SessionManager(http, storage, clock) { userChanged(it) }
+        http.locale = language
         this.http = http
         this.session = manager
         this.cachedUser = null
         _authState.value = manager.restoredUserId
+    }
+
+    /** The Rivium Auth server this client talks to, without a trailing slash. */
+    val baseUrl: String get() = http?.baseUrl ?: DEFAULT_BASE_URL
+
+    // ---------------------------------------------------------------- Language
+
+    /**
+     * The language of the e-mails Rivium sends this user (confirm e-mail, password reset, magic link), like Firebase's
+     * `languageCode`: a BCP 47 tag such as `de` or `en-US`. null = the project's template language (Console › Rivium
+     * Auth › Email templates). A language Rivium has no texts for also falls back to the template language.
+     */
+    var languageCode: String?
+        get() = language
+        set(value) {
+            val v = value?.trim().orEmpty()
+            language = if (v.length in 2..35 && LANGUAGE_TAG.matches(v)) v else null
+            http?.locale = language
+        }
+
+    /** Sets [languageCode] to the app's current language, like Firebase's `useAppLanguage()`. */
+    fun useAppLanguage() {
+        languageCode = java.util.Locale.getDefault().toLanguageTag()
     }
 
     // ---------------------------------------------------------------- State
@@ -226,8 +253,14 @@ class RiviumAuth internal constructor() {
     suspend fun linkPassword(email: String, password: String): AuthResult =
         link("v1/link/password", mapOf("email" to email, "password" to password))
 
-    /** Sends a password-reset link. Succeeds whether or not the address has an account. */
-    suspend fun sendPasswordReset(email: String, redirectUrl: String) {
+    /**
+     * Sends a password-reset link. Succeeds whether or not the address has an account.
+     *
+     * @param redirectUrl Your own reset page (one of the project's allowed redirect URLs). Null: Rivium's own reset
+     *   page.
+     */
+    @JvmOverloads
+    suspend fun sendPasswordReset(email: String, redirectUrl: String? = null) {
         client().send("POST", "v1/password/forgot", mapOf("email" to email, "redirectUrl" to redirectUrl))
     }
 

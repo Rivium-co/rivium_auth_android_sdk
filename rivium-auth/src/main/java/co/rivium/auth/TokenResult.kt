@@ -40,14 +40,7 @@ data class RiviumTokenResult(
             }
             val exp = (payload.opt("exp") as? Number)?.toLong() ?: return null
             val iat = (payload.opt("iat") as? Number)?.toLong() ?: return null
-            // `meta` is Rivium's own bookkeeping, not a claim. Custom claims come at the top level; a server that nests
-            // them under `claims` gets them spread out too (token fields always win over a custom claim).
-            val fields = toMap(payload).toMutableMap().apply { remove("meta") }
-            val nested = fields.remove("claims") as? Map<*, *>
-            val claims = buildMap<String, Any?> {
-                nested?.forEach { (k, v) -> if (k is String) put(k, v) }
-                putAll(fields)
-            }
+            val claims = toMap(payload).toMutableMap().apply { remove("meta") } // Rivium's own bookkeeping, not a claim
             val amr = payload.optJSONArray("amr")?.opt(0) as? String
             return RiviumTokenResult(
                 token = token,

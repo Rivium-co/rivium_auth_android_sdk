@@ -16,7 +16,10 @@ internal class HttpClient(
     private val apiKey: String,
     private val client: OkHttpClient,
 ) {
-    private val baseUrl = baseUrl.trimEnd('/')
+    val baseUrl = baseUrl.trimEnd('/')
+
+    /** Sent as `x-rivium-locale` (the language of the e-mails Rivium sends); null = not sent. */
+    @Volatile var locale: String? = null
 
     suspend fun send(
         method: String,
@@ -35,6 +38,7 @@ internal class HttpClient(
             .header("X-Rivium-SDK", SDK_HEADER)
             .header("Accept", "application/json")
             .apply { if (bearer != null) header("Authorization", "Bearer $bearer") }
+            .apply { locale?.let { header("x-rivium-locale", it) } }
             .method(method, requestBody ?: if (method == "POST") EMPTY.toRequestBody(JSON) else null)
             .build()
 

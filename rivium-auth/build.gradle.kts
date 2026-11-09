@@ -31,6 +31,8 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        // The sign-in screen tests run the real views under Robolectric.
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
@@ -47,13 +49,15 @@ dependencies {
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     // The real org.json: the Android one is only a stub on the JVM.
     testImplementation("org.json:json:20231013")
+    // The sign-in screen's views on the JVM.
+    testImplementation("org.robolectric:robolectric:4.11.1")
 }
 
 mavenPublishing {
     publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
     signAllPublications()
 
-    coordinates("co.rivium", "rivium-auth", project.findProperty("VERSION_NAME") as String? ?: "0.2.0")
+    coordinates("co.rivium", "rivium-auth", project.findProperty("VERSION_NAME") as String? ?: "0.4.0")
 
     pom {
         name.set("RiviumAuth Android SDK")
